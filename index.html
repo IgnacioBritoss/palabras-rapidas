@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Práctica de escritura rápida</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: white;
+    }
+
+    .contenedor {
+      width: 90%;
+      max-width: 760px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 2rem;
+    }
+
+    .modos {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 18px 0 10px;
+    }
+
+    .modo-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.12);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .modo-btn.activo {
+      background: #facc15;
+      color: #111827;
+    }
+
+    .palabra {
+      font-size: 2.3rem;
+      font-weight: bold;
+      margin: 30px 0 22px;
+      letter-spacing: 1px;
+      min-height: 52px;
+      word-break: break-word;
+    }
+
+    .letra {
+      color: #facc15;
+      transition: 0.15s;
+    }
+
+    .letra.correcta {
+      color: #4ade80;
+    }
+
+    .letra.incorrecta {
+      color: #f87171;
+    }
+
+    .letra.actual {
+      text-decoration: underline;
+      text-underline-offset: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 12px;
+      outline: none;
+      text-align: center;
+    }
+
+    .info {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      flex: 1;
+      min-width: 140px;
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 14px;
+    }
+
+    .mensaje {
+      margin-top: 18px;
+      font-size: 1.1rem;
+      min-height: 28px;
+      font-weight: bold;
+    }
+
+    .correcto {
+      color: #4ade80;
+    }
+
+    .incorrecto {
+      color: #f87171;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 12px;
+      background: #facc15;
+      color: #111827;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover,
+    .modo-btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h1>Práctica de escritura rápida</h1>
+    <p>Escribí la palabra. Se valida sola mientras tipeás.</p>
+
+    <div class="modos">
+      <button class="modo-btn activo" id="modoTiempo">Modo con tiempo</button>
+      <button class="modo-btn" id="modoLibre">Modo libre</button>
+    </div>
+
+    <div class="palabra" id="palabra"></div>
+
+    <input
+      type="text"
+      id="entrada"
+      placeholder="Escribí acá"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    />
+
+    <div class="mensaje" id="mensaje"></div>
+
+    <div class="info">
+      <div class="card">
+        <strong>Puntos</strong>
+        <div id="puntos">0</div>
+      </div>
+      <div class="card">
+        <strong>Aciertos</strong>
+        <div id="aciertos">0</div>
+      </div>
+      <div class="card">
+        <strong>Errores</strong>
+        <div id="errores">0</div>
+      </div>
+      <div class="card">
+        <strong>Tiempo</strong>
+        <div><span id="tiempo">60</span></div>
+      </div>
+    </div>
+
+    <button id="reiniciar">Reiniciar</button>
+  </div>
+
+  <script>
+    const palabras = [
+      "casa", "perro", "gato", "ventana", "teclado", "monitor", "escuela",
+      "pelota", "camino", "auto", "nube", "juego", "programa", "rapido",
+      "libro", "lapiz", "cuaderno", "montaña", "rio", "ciudad", "botella",
+      "musica", "auriculares", "celular", "pantalla", "silla", "mesa",
+      "amigo", "familia", "trabajo", "futuro", "energia", "codigo",
+      "internet", "servidor", "archivo", "javascript", "html", "css",
+      "argentina", "deporte", "escenario", "memoria", "practica", "velocidad",
+      "computadora", "impresora", "bicicleta", "motocicleta", "camiseta",
+      "zapatilla", "almohada", "heladera", "microondas", "desayuno",
+      "almuerzo", "merienda", "cena", "banana", "manzana", "naranja",
+      "frutilla", "sandia", "durazno", "mandarina", "anillo", "reloj",
+      "pulsera", "mochila", "cartuchera", "universidad", "profesor",
+      "estudiante", "carpeta", "escritorio", "lapicera", "corrector",
+      "biblioteca", "semaforo", "avenida", "colectivo", "subte", "tren",
+      "aeropuerto", "pasaporte", "valija", "turismo", "playa", "bosque",
+      "desierto", "oceano", "isla", "puente", "edificio", "hospital",
+      "farmacia", "panaderia", "supermercado", "restaurante", "cafeteria",
+      "hamburguesa", "milanesa", "empanada", "pizza", "fideos", "ensalada",
+      "helado", "chocolate", "galaxia", "estrella", "planeta", "astronauta",
+      "cohete", "universo", "gravedad", "fisica", "quimica", "biologia",
+      "historia", "geografia", "matematica", "division", "multiplicacion",
+      "fraccion", "porcentaje", "ecuacion", "variable", "resultado",
+      "algoritmo", "sistema", "aplicacion", "proyecto", "desarrollo",
+      "frontend", "backend", "cliente", "conexion", "navegador",
+      "contraseña", "seguridad", "robotica", "inteligencia", "artificial",
+      "aprendizaje", "automatizacion", "sensores", "mecanismo", "hardware",
+      "software", "procesador", "almacenamiento", "documento",
+      "presentacion", "investigacion", "branding", "tipografia", "logotipo",
+      "identidad", "creatividad", "ilustracion", "fotografia", "animacion",
+      "pelicula", "personaje", "aventura", "fantasia", "misterio", "comedia",
+      "drama", "cancion", "melodia", "instrumento", "guitarra", "piano",
+      "bateria", "violin", "orquesta", "escultura", "pintura", "museo",
+      "campeonato", "competencia", "entrenamiento", "nadador", "futbolista",
+      "arquero", "delantero", "defensor", "estrategia", "victoria", "derrota",
+      "esfuerzo", "disciplina", "paciencia", "constancia", "respeto",
+      "confianza", "motivacion", "objetivo", "esperanza", "oportunidad",
+      "problema", "solucion", "pregunta", "respuesta", "decision", "experiencia",
+      "conocimiento", "habilidad", "talento", "imaginacion", "curiosidad",
+      "organizacion", "responsabilidad", "comunicacion", "colaboracion",
+      "innovacion", "emprendimiento", "negocio", "mercado",
+      "publicidad", "crecimiento", "beneficio", "producto",
+      "servicio", "calidad", "elegancia", "premium", "movilidad"
+    ];
+
+    const palabraEl = document.getElementById("palabra");
+    const entradaEl = document.getElementById("entrada");
+    const mensajeEl = document.getElementById("mensaje");
+    const puntosEl = document.getElementById("puntos");
+    const aciertosEl = document.getElementById("aciertos");
+    const erroresEl = document.getElementById("errores");
+    const tiempoEl = document.getElementById("tiempo");
+    const reiniciarBtn = document.getElementById("reiniciar");
+    const modoTiempoBtn = document.getElementById("modoTiempo");
+    const modoLibreBtn = document.getElementById("modoLibre");
+
+    let palabraActual = "";
+    let puntos = 0;
+    let aciertos = 0;
+    let errores = 0;
+    let tiempo = 60;
+    let intervalo = null;
+    let juegoActivo = true;
+    let modo = "tiempo";
+
+    function elegirPalabra() {
+      const indice = Math.floor(Math.random() * palabras.length);
+      palabraActual = palabras[indice];
+      entradaEl.value = "";
+      renderPalabra("");
+    }
+
+    function renderPalabra(textoUsuario) {
+      palabraEl.innerHTML = "";
+
+      for (let i = 0; i < palabraActual.length; i++) {
+        const span = document.createElement("span");
+        span.textContent = palabraActual[i];
+        span.classList.add("letra");
+
+        if (i < textoUsuario.length) {
+          if (textoUsuario[i] === palabraActual[i]) {
+            span.classList.add("correcta");
+          } else {
+            span.classList.add("incorrecta");
+          }
+        } else if (i === textoUsuario.length) {
+          span.classList.add("actual");
+        }
+
+        palabraEl.appendChild(span);
+      }
+    }
+
+    function actualizarPanel() {
+      puntosEl.textContent = puntos;
+      aciertosEl.textContent = aciertos;
+      erroresEl.textContent = errores;
+
+      if (modo === "libre") {
+        tiempoEl.textContent = "Sin límite";
+      } else {
+        tiempoEl.textContent = tiempo + " s";
+      }
+    }
+
+    function mostrarMensaje(texto, clase) {
+      mensajeEl.textContent = texto;
+      mensajeEl.className = "mensaje " + clase;
+    }
+
+    function detenerTemporizador() {
+      clearInterval(intervalo);
+      intervalo = null;
+    }
+
+    function iniciarTemporizador() {
+      detenerTemporizador();
+
+      if (modo === "libre") {
+        actualizarPanel();
+        return;
+      }
+
+      intervalo = setInterval(() => {
+        tiempo--;
+        actualizarPanel();
+
+        if (tiempo <= 0) {
+          detenerTemporizador();
+          juegoActivo = false;
+          entradaEl.disabled = true;
+          mostrarMensaje("Se terminó el tiempo.", "incorrecto");
+        }
+      }, 1000);
+    }
+
+    function setModo(nuevoModo) {
+      modo = nuevoModo;
+
+      if (modo === "tiempo") {
+        modoTiempoBtn.classList.add("activo");
+        modoLibreBtn.classList.remove("activo");
+      } else {
+        modoLibreBtn.classList.add("activo");
+        modoTiempoBtn.classList.remove("activo");
+      }
+
+      reiniciarJuego();
+    }
+
+    function reiniciarJuego() {
+      puntos = 0;
+      aciertos = 0;
+      errores = 0;
+      tiempo = 60;
+      juegoActivo = true;
+      entradaEl.disabled = false;
+      mostrarMensaje("", "");
+      elegirPalabra();
+      actualizarPanel();
+      iniciarTemporizador();
+      entradaEl.focus();
+    }
+
+    entradaEl.addEventListener("input", () => {
+      if (!juegoActivo) return;
+
+      const texto = entradaEl.value;
+      renderPalabra(texto);
+
+      if (texto.length === palabraActual.length) {
+        if (texto === palabraActual) {
+          puntos += 10;
+          aciertos++;
+          mostrarMensaje("Correcto", "correcto");
+          elegirPalabra();
+        } else {
+          errores++;
+          mostrarMensaje("Incorrecto", "incorrecto");
+          entradaEl.value = "";
+          renderPalabra("");
+        }
+
+        actualizarPanel();
+      }
+    });
+
+    reiniciarBtn.addEventListener("click", reiniciarJuego);
+    modoTiempoBtn.addEventListener("click", () => setModo("tiempo"));
+    modoLibreBtn.addEventListener("click", () => setModo("libre"));
+
+    reiniciarJuego();
+  </script>
+</body>
+</html>
